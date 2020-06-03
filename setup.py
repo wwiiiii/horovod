@@ -1578,6 +1578,8 @@ keras_require_list = ['keras>=2.0.8,!=2.0.9,!=2.1.0,!=2.1.1']
 pytorch_require_list = ['torch']
 mxnet_require_list = ['mxnet>=1.4.1']
 spark_require_list = ['h5py>=2.9', 'numpy', 'petastorm>=0.9.0', 'pyarrow>=0.15.0', 'pyspark>=2.3.2']
+pytorch_spark_require_list = ['pytorch_lightning>=0.7.7'] + pytorch_require_list + spark_require_list
+
 # all frameworks' dependencies
 all_frameworks_require_list = tensorflow_require_list + \
                               tensorflow_gpu_require_list + \
@@ -1625,7 +1627,8 @@ setup(name='horovod',
           'keras': keras_require_list,
           'pytorch': pytorch_require_list,
           'mxnet': mxnet_require_list,
-          'spark': spark_require_list
+          'spark': spark_require_list,
+          'pytorch-spark': pytorch_spark_require_list,
       },
       python_requires='>=3.6',
       zip_safe=False,
