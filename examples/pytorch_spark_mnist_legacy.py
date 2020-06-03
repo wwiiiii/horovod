@@ -11,9 +11,6 @@ from pyspark.ml.feature import OneHotEncoderEstimator
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import udf
 
-from pytorch_lightning import LightningModule
-
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -72,7 +69,7 @@ if __name__ == '__main__':
     train_df, test_df = train_df.randomSplit([0.9, 0.1])
 
     # Define the PyTorch model without any Horovod-specific parameters
-    class Net(LightningModule):
+    class Net(nn.Module):
         def __init__(self):
             super(Net, self).__init__()
             self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
@@ -91,33 +88,17 @@ if __name__ == '__main__':
             x = self.fc2(x)
             return F.log_softmax(x)
 
-        def configure_optimizers(self):
-            return optim.SGD(self.parameters(), lr=0.01, momentum=0.5)
-
-        def training_step(self, batch, batch_nb):
-            x, y = batch
-            y_hat = self(x)
-            loss = F.nll_loss(y_hat, y)
-            tensorboard_logs = {'train_loss': loss}
-            return {'loss': loss, 'log': tensorboard_logs}
-
-        def validation_step(self, batch, batch_nb):
-            x, y = batch
-            y_hat = self(x)
-            return {'val_loss': F.nll_loss(y_hat, y)}
-
-        def validation_epoch_end(self, outputs):
-            avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-            tensorboard_logs = {'val_loss': avg_loss}
-            return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
-
 
     model = Net()
+    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.5)
+    loss = nn.NLLLoss()
 
     # Train a Horovod Spark Estimator on the DataFrame
     torch_estimator = hvd.TorchEstimator(num_proc=args.num_proc,
                                          store=store,
                                          model=model,
+                                         optimizer=optimizer,
+                                         loss=lambda input, target: loss(input, target.long()),
                                          input_shapes=[[-1, 1, 28, 28]],
                                          feature_cols=['features'],
                                          label_cols=['label'],
