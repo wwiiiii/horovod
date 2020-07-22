@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Added `hvd.is_initialized()` method. ([#2020](https://github.com/horovod/horovod/pull/2020))
 
+- Added ability to dynamically start and stop timeline programmatically. ([#2129](https://github.com/horovod/horovod/pull/2129))
+
 ### Changed
 
 - Moved `horovod.run.runner.run` to `horovod.run`. ([#2099](https://github.com/horovod/horovod/pull/2099))
